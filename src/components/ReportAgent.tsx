@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,7 @@ type ReportAgentProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-const initialMessages = [
+const initialMessages: Message[] = [
   {
     id: "welcome",
     content: "Hello! I'm your FaceFit Health Advisor. I can help analyze your progress and create personalized health reports. How are you feeling today?",
@@ -27,7 +26,6 @@ const initialMessages = [
   },
 ];
 
-// Questions we'll ask during the report compilation
 const reportQuestions = [
   "How has your energy level been this week?",
   "Have you noticed any changes in your sleep patterns?",
@@ -68,7 +66,6 @@ const ReportAgent: React.FC<ReportAgentProps> = ({ open, onOpenChange }) => {
     setMessages([...messages, newUserMessage]);
     setInputValue("");
 
-    // Simulate agent response after a short delay
     setTimeout(() => {
       const response = {
         id: (Date.now() + 1).toString(),
@@ -84,7 +81,6 @@ const ReportAgent: React.FC<ReportAgentProps> = ({ open, onOpenChange }) => {
     setIsCompiling(true);
     setCurrentQuestionIndex(0);
     
-    // Add a message to start the report compilation process
     const startMessage = {
       id: Date.now().toString(),
       content: "Let's compile a comprehensive health and fitness report. I'll ask you a series of questions to better understand your progress.",
@@ -94,7 +90,6 @@ const ReportAgent: React.FC<ReportAgentProps> = ({ open, onOpenChange }) => {
     
     setMessages(prev => [...prev, startMessage]);
     
-    // Ask the first question
     setTimeout(() => {
       const questionMessage = {
         id: (Date.now() + 1).toString(),
@@ -119,12 +114,10 @@ const ReportAgent: React.FC<ReportAgentProps> = ({ open, onOpenChange }) => {
     setMessages([...messages, newUserMessage]);
     setInputValue("");
 
-    // Move to next question or finish compile
     const nextIndex = currentQuestionIndex + 1;
     setCurrentQuestionIndex(nextIndex);
 
     if (nextIndex < reportQuestions.length) {
-      // Ask next question after a short delay
       setTimeout(() => {
         const questionMessage = {
           id: (Date.now() + 1).toString(),
@@ -135,7 +128,6 @@ const ReportAgent: React.FC<ReportAgentProps> = ({ open, onOpenChange }) => {
         setMessages(prev => [...prev, questionMessage]);
       }, 1000);
     } else {
-      // Finished all questions, generate report
       setTimeout(() => {
         const finishMessage = {
           id: (Date.now() + 1).toString(),
@@ -145,7 +137,6 @@ const ReportAgent: React.FC<ReportAgentProps> = ({ open, onOpenChange }) => {
         };
         setMessages(prev => [...prev, finishMessage]);
         
-        // Simulate report generation
         setTimeout(() => {
           setIsCompiling(false);
           generateReport();
@@ -155,7 +146,6 @@ const ReportAgent: React.FC<ReportAgentProps> = ({ open, onOpenChange }) => {
   };
 
   const generateReport = () => {
-    // In a real app, this would analyze all the user data
     const reportContent = `
 # FaceFit Health & Fitness Report
 ## Generated on ${new Date().toLocaleDateString()}
@@ -190,7 +180,6 @@ Keep up the great work! Your consistency is showing results across all measured 
     
     setCompiledReport(reportContent);
     
-    // Add message about the completed report
     const reportMessage = {
       id: Date.now().toString(),
       content: "Your health and fitness report is ready! You can view it and download it below.",
@@ -234,7 +223,6 @@ Keep up the great work! Your consistency is showing results across all measured 
         </DialogHeader>
         
         <div className="flex flex-col space-y-4 h-[60vh]">
-          {/* Chat window */}
           <div className="flex-1 overflow-y-auto border rounded-md p-4 bg-background">
             <div className="space-y-4">
               {messages.map((message) => (
@@ -260,7 +248,6 @@ Keep up the great work! Your consistency is showing results across all measured 
             </div>
           </div>
           
-          {/* Report preview if available */}
           {compiledReport && (
             <Card className="max-h-[200px] overflow-y-auto">
               <CardContent className="pt-4">
@@ -281,7 +268,6 @@ Keep up the great work! Your consistency is showing results across all measured 
             </Card>
           )}
           
-          {/* Input area */}
           <div className="flex gap-2">
             <Input
               value={inputValue}
@@ -298,7 +284,6 @@ Keep up the great work! Your consistency is showing results across all measured 
             </Button>
           </div>
           
-          {/* Report compile button */}
           {!isCompiling && !compiledReport && (
             <Button 
               onClick={startCompileReport}
