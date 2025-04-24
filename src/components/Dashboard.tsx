@@ -6,6 +6,7 @@ import NutritionLog from './NutritionLog';
 import MeasurementsTracker from './MeasurementsTracker';
 import WorkoutLog from './WorkoutLog';
 import ProgressChart from './ProgressChart';
+import Goals from './Goals';
 
 const Dashboard: React.FC = () => {
   return (
@@ -15,6 +16,7 @@ const Dashboard: React.FC = () => {
         <WaterTracker />
         <NutritionLog />
         <WorkoutLog />
+        <Goals />
         <div className="md:col-span-2">
           <ProgressChart />
         </div>
