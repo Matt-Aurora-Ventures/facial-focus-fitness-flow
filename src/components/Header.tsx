@@ -2,8 +2,11 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ScanFace, ChartBar } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
+  
   return (
     <header className="sticky top-0 z-10 w-full bg-background/80 backdrop-blur-sm border-b border-border py-3">
       <div className="container flex items-center justify-between">
@@ -17,7 +20,12 @@ const Header: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-1"
+            onClick={() => navigate('/progress')}
+          >
             <ChartBar className="h-4 w-4" />
             <span className="hidden sm:inline">Progress</span>
           </Button>
