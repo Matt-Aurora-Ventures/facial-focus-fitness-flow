@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ScanFace, Droplet, Apple, Dumbbell, Ruler } from "lucide-react";
+import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -16,11 +16,11 @@ const Navigation: React.FC = () => {
   const currentPath = location.pathname;
 
   const navItems: NavItem[] = [
-    { icon: ScanFace, label: "Scan", path: "/" },
-    { icon: Droplet, label: "Water", path: "/" },
-    { icon: Apple, label: "Nutrition", path: "/" },
+    { icon: ScanFace, label: "Home", path: "/" },
+    { icon: Droplet, label: "Water", path: "/water" },
     { icon: Dumbbell, label: "Workouts", path: "/workouts" },
-    { icon: Ruler, label: "Measures", path: "/" },
+    { icon: Users, label: "Social", path: "/social" },
+    { icon: MapPin, label: "Gyms", path: "/gyms" },
   ];
 
   return (
