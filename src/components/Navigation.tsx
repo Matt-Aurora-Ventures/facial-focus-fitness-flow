@@ -2,20 +2,25 @@
 import React from 'react';
 import { ScanFace, Droplet, Apple, Dumbbell, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface NavItem {
   icon: React.ElementType;
   label: string;
-  active?: boolean;
+  path: string;
 }
 
 const Navigation: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const navItems: NavItem[] = [
-    { icon: ScanFace, label: "Scan", active: true },
-    { icon: Droplet, label: "Water" },
-    { icon: Apple, label: "Nutrition" },
-    { icon: Dumbbell, label: "Workouts" },
-    { icon: Ruler, label: "Measures" },
+    { icon: ScanFace, label: "Scan", path: "/" },
+    { icon: Droplet, label: "Water", path: "/" },
+    { icon: Apple, label: "Nutrition", path: "/" },
+    { icon: Dumbbell, label: "Workouts", path: "/workouts" },
+    { icon: Ruler, label: "Measures", path: "/" },
   ];
 
   return (
@@ -24,10 +29,11 @@ const Navigation: React.FC = () => {
         {navItems.map((item) => (
           <Button
             key={item.label}
-            variant={item.active ? "default" : "ghost"}
+            variant={item.path === currentPath ? "default" : "ghost"}
             className={`flex flex-col gap-1 h-auto py-1.5 px-2.5 ${
-              item.active ? "bg-facefit-purple text-white" : "text-muted-foreground"
+              item.path === currentPath ? "bg-facefit-purple text-white" : "text-muted-foreground"
             }`}
+            onClick={() => navigate(item.path)}
           >
             <item.icon className="h-5 w-5" />
             <span className="text-xs font-medium">{item.label}</span>
