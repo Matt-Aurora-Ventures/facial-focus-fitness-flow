@@ -11,6 +11,10 @@ import NotFound from "./pages/NotFound";
 import WaterPage from "./pages/WaterPage";
 import GymFinderPage from "./pages/GymFinder";
 import SocialPage from "./pages/Social";
+import MeasurementsPage from "./pages/Measurements";
+import ActivityClubsPage from "./pages/ActivityClubs";
+import RunningTrailsPage from "./pages/RunningTrails";
+import WorkoutRecorderPage from "./pages/WorkoutRecorder";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +31,10 @@ const App = () => (
           <Route path="/water" element={<WaterPage />} />
           <Route path="/gyms" element={<GymFinderPage />} />
           <Route path="/social" element={<SocialPage />} />
+          <Route path="/measurements" element={<MeasurementsPage />} />
+          <Route path="/activity-clubs" element={<ActivityClubsPage />} />
+          <Route path="/running-trails" element={<RunningTrailsPage />} />
+          <Route path="/workout-recorder" element={<WorkoutRecorderPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
