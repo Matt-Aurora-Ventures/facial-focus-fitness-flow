@@ -1,63 +1,62 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Search, Filter, Mountain, Timer, Ruler, Star, Heart } from "lucide-react";
+import { Map, MapPin, Clock, Activity, Star } from "lucide-react";
 
 const RunningTrails: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [difficulty, setDifficulty] = useState<'all' | 'easy' | 'moderate' | 'hard'>('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   
-  // Mock data for trails
   const trails = [
     {
       id: 1,
-      name: "Riverside Loop",
+      name: "Riverside Path",
       difficulty: "easy",
+      distance: "3.2 miles",
+      elevation: "50 ft",
       rating: 4.7,
-      distance: 3.2,
-      elevation: 50,
-      time: "30-45 min",
-      location: "Riverside Park, Fitness City",
-      description: "Scenic flat trail along the river with great views",
-      favorite: true
+      location: "Downtown Riverfront",
+      estimatedTime: "45 min",
+      description: "Scenic riverside trail perfect for beginners and casual runners"
     },
     {
       id: 2,
-      name: "Forest Hills Track",
-      difficulty: "moderate",
-      rating: 4.5,
-      distance: 5.8,
-      elevation: 150,
-      time: "50-70 min",
-      location: "Forest Hills Park, Fitness City",
-      description: "Beautiful wooded trail with moderate hills",
-      favorite: false
+      name: "Mountain Ridge Loop",
+      difficulty: "hard",
+      distance: "8.5 miles",
+      elevation: "1,200 ft",
+      rating: 4.9,
+      location: "North Mountain Park",
+      estimatedTime: "2.5 hrs",
+      description: "Challenging trail with steep inclines and technical terrain"
     },
     {
       id: 3,
-      name: "Mountain Summit Route",
-      difficulty: "hard",
-      rating: 4.9,
-      distance: 8.5,
-      elevation: 350,
-      time: "90-120 min",
-      location: "Mountain View Park, Fitness City",
-      description: "Challenging trail with steep climbs and amazing views from the summit",
-      favorite: false
-    },
+      name: "Forest Valley Circuit",
+      difficulty: "moderate",
+      distance: "5.7 miles",
+      elevation: "400 ft",
+      rating: 4.5,
+      location: "Forest Valley Reserve",
+      estimatedTime: "1.5 hrs",
+      description: "Mixed terrain trail through scenic forest paths"
+    }
   ];
 
-  const filteredTrails = difficulty === 'all'
-    ? trails
-    : trails.filter(trail => trail.difficulty === difficulty);
+  const filteredTrails = selectedDifficulty === 'all' 
+    ? trails 
+    : trails.filter(trail => trail.difficulty === selectedDifficulty);
 
   const getDifficultyColor = (difficulty: string) => {
     switch(difficulty) {
-      case 'easy': return 'bg-green-100 text-green-800';
-      case 'moderate': return 'bg-yellow-100 text-yellow-800';
-      case 'hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'easy':
+        return 'text-green-500 bg-green-100';
+      case 'moderate':
+        return 'text-yellow-500 bg-yellow-100';
+      case 'hard':
+        return 'text-red-500 bg-red-100';
+      default:
+        return 'text-gray-500 bg-gray-100';
     }
   };
 
@@ -65,128 +64,83 @@ const RunningTrails: React.FC = () => {
     <div className="container max-w-4xl mx-auto px-4 py-6 mb-20">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold">Running Trails</h2>
-        <Button className="bg-facefit-purple hover:bg-facefit-purple/90">
-          <MapPin className="h-4 w-4 mr-2" />
-          Map View
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant={selectedDifficulty === 'all' ? 'default' : 'outline'} 
+            className={selectedDifficulty === 'all' ? 'bg-facefit-purple' : ''}
+            onClick={() => setSelectedDifficulty('all')}
+          >
+            All
+          </Button>
+          <Button 
+            variant={selectedDifficulty === 'easy' ? 'default' : 'outline'}
+            className={selectedDifficulty === 'easy' ? 'bg-facefit-purple' : ''}
+            onClick={() => setSelectedDifficulty('easy')}
+          >
+            Easy
+          </Button>
+          <Button 
+            variant={selectedDifficulty === 'moderate' ? 'default' : 'outline'}
+            className={selectedDifficulty === 'moderate' ? 'bg-facefit-purple' : ''}
+            onClick={() => setSelectedDifficulty('moderate')}
+          >
+            Moderate
+          </Button>
+          <Button 
+            variant={selectedDifficulty === 'hard' ? 'default' : 'outline'}
+            className={selectedDifficulty === 'hard' ? 'bg-facefit-purple' : ''}
+            onClick={() => setSelectedDifficulty('hard')}
+          >
+            Hard
+          </Button>
+        </div>
       </div>
 
-      {/* Search and Filters */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search for trails..."
-                className="w-full pl-9 pr-4 py-2 rounded-md border border-input bg-background"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant={difficulty === 'all' ? 'default' : 'outline'} 
-                className={difficulty === 'all' ? 'bg-facefit-purple' : ''}
-                onClick={() => setDifficulty('all')}
-              >
-                All
-              </Button>
-              <Button 
-                variant={difficulty === 'easy' ? 'default' : 'outline'} 
-                className={difficulty === 'easy' ? 'bg-green-600' : ''}
-                onClick={() => setDifficulty('easy')}
-              >
-                Easy
-              </Button>
-              <Button 
-                variant={difficulty === 'moderate' ? 'default' : 'outline'} 
-                className={difficulty === 'moderate' ? 'bg-yellow-600' : ''}
-                onClick={() => setDifficulty('moderate')}
-              >
-                Moderate
-              </Button>
-              <Button 
-                variant={difficulty === 'hard' ? 'default' : 'outline'} 
-                className={difficulty === 'hard' ? 'bg-red-600' : ''}
-                onClick={() => setDifficulty('hard')}
-              >
-                Hard
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Trail Map Placeholder */}
-      <Card className="mb-6">
-        <CardContent className="p-0">
-          <div className="h-60 bg-accent flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="h-8 w-8 mx-auto mb-2 text-facefit-purple" />
-              <p className="text-lg font-medium">Trail Map</p>
-              <p className="text-sm text-muted-foreground">Click to view trails on the map</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Trail Listings */}
       <div className="space-y-4">
         {filteredTrails.map((trail) => (
-          <Card key={trail.id}>
-            <div className="p-4">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <div className="flex items-center gap-2">
+          <Card key={trail.id} className="overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="sm:w-1/4 flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-full bg-facefit-purple/20 flex items-center justify-center">
+                    <Map className="h-10 w-10 text-facefit-purple" />
+                  </div>
+                </div>
+                <div className="sm:w-3/4">
+                  <div className="flex justify-between items-start mb-2">
                     <h3 className="text-xl font-medium">{trail.name}</h3>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(trail.difficulty)}`}>
-                      {trail.difficulty.charAt(0).toUpperCase() + trail.difficulty.slice(1)}
-                    </span>
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 fill-facefit-purple text-facefit-purple mr-1" />
+                      <span>{trail.rating}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" />
-                    <span>{trail.location}</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-2 mb-3">
+                    <div className="flex items-center gap-1">
+                      <Activity className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{trail.distance}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{trail.location}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{trail.estimatedTime}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className={`text-sm px-2 py-0.5 rounded-full capitalize ${getDifficultyColor(trail.difficulty)}`}>
+                        {trail.difficulty}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">{trail.description}</p>
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1">View Details</Button>
+                    <Button className="flex-1 bg-facefit-purple hover:bg-facefit-purple/90">Start Run</Button>
                   </div>
                 </div>
-                <div className="flex items-center">
-                  <Star className="h-4 w-4 fill-facefit-purple text-facefit-purple mr-1" />
-                  <span>{trail.rating}</span>
-                </div>
               </div>
-              
-              <div className="grid grid-cols-3 gap-2 my-4">
-                <div className="flex flex-col items-center p-2 bg-accent/30 rounded-md">
-                  <Ruler className="h-4 w-4 mb-1 text-muted-foreground" />
-                  <span className="text-sm font-medium">{trail.distance} mi</span>
-                  <span className="text-xs text-muted-foreground">Distance</span>
-                </div>
-                <div className="flex flex-col items-center p-2 bg-accent/30 rounded-md">
-                  <Mountain className="h-4 w-4 mb-1 text-muted-foreground" />
-                  <span className="text-sm font-medium">{trail.elevation} ft</span>
-                  <span className="text-xs text-muted-foreground">Elevation</span>
-                </div>
-                <div className="flex flex-col items-center p-2 bg-accent/30 rounded-md">
-                  <Timer className="h-4 w-4 mb-1 text-muted-foreground" />
-                  <span className="text-sm font-medium">{trail.time}</span>
-                  <span className="text-xs text-muted-foreground">Est. Time</span>
-                </div>
-              </div>
-              
-              <p className="text-sm mb-4">{trail.description}</p>
-              
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1">View Details</Button>
-                <Button 
-                  variant="outline" 
-                  className={`w-10 ${trail.favorite ? 'text-red-500' : ''}`}
-                >
-                  <Heart className={`h-4 w-4 ${trail.favorite ? 'fill-red-500' : ''}`} />
-                </Button>
-                <Button className="flex-1 bg-facefit-purple hover:bg-facefit-purple/90">Start Run</Button>
-              </div>
-            </div>
+            </CardContent>
           </Card>
         ))}
       </div>

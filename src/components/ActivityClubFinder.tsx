@@ -1,14 +1,12 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Search, Filter, Clock, Phone, Star, Activity, Map, Users } from "lucide-react";
+import { MapPin, Search, Clock, Phone, Star, Activity, Map, Users } from "lucide-react";
 
 const ActivityClubFinder: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activityType, setActivityType] = useState<string>('all');
   
-  // Mock data for activity clubs
   const clubs = [
     {
       id: 1,
@@ -52,13 +50,13 @@ const ActivityClubFinder: React.FC = () => {
   const getActivityIcon = (type: string) => {
     switch(type) {
       case 'running':
-        return <Map className="h-6 w-6" />;
+        return <Map className="h-6 w-6 text-facefit-purple" />;
       case 'cycling':
-        return <Activity className="h-6 w-6" />;
+        return <Activity className="h-6 w-6 text-facefit-purple" />;
       case 'mma':
-        return <Users className="h-6 w-6" />;
+        return <Users className="h-6 w-6 text-facefit-purple" />;
       default:
-        return <Map className="h-6 w-6" />;
+        return <Map className="h-6 w-6 text-facefit-purple" />;
     }
   };
 
@@ -68,7 +66,6 @@ const ActivityClubFinder: React.FC = () => {
         <h2 className="text-2xl font-semibold">Activity Clubs</h2>
       </div>
 
-      {/* Search and Filter */}
       <Card className="mb-6">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -119,12 +116,11 @@ const ActivityClubFinder: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Club Listings */}
       <div className="space-y-4">
         {filteredClubs.map((club) => (
           <Card key={club.id}>
             <div className="flex flex-col sm:flex-row">
-              <div className="sm:w-1/4 p-4 flex items-center justify-center bg-accent/30">
+              <div className="sm:w-1/4 p-4 flex items-center justify-center">
                 <div className="w-16 h-16 rounded-full bg-facefit-purple/20 flex items-center justify-center">
                   {getActivityIcon(club.type)}
                 </div>
