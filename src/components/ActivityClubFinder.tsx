@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Running, Bicycle, Boxing, MapPin, Search, Filter, Clock, Phone, Star } from "lucide-react";
+import { MapPin, Search, Filter, Clock, Phone, Star, Activity, Map, Users } from "lucide-react";
 
 const ActivityClubFinder: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,13 +52,13 @@ const ActivityClubFinder: React.FC = () => {
   const getActivityIcon = (type: string) => {
     switch(type) {
       case 'running':
-        return <Running className="h-6 w-6" />;
+        return <Map className="h-6 w-6" />;
       case 'cycling':
-        return <Bicycle className="h-6 w-6" />;
+        return <Activity className="h-6 w-6" />;
       case 'mma':
-        return <Boxing className="h-6 w-6" />;
+        return <Users className="h-6 w-6" />;
       default:
-        return <Running className="h-6 w-6" />;
+        return <Map className="h-6 w-6" />;
     }
   };
 
@@ -95,7 +95,7 @@ const ActivityClubFinder: React.FC = () => {
                 className={activityType === 'running' ? 'bg-facefit-purple' : ''}
                 onClick={() => setActivityType('running')}
               >
-                <Running className="h-4 w-4 mr-2" />
+                <Map className="h-4 w-4 mr-2" />
                 Running
               </Button>
               <Button 
@@ -103,7 +103,7 @@ const ActivityClubFinder: React.FC = () => {
                 className={activityType === 'cycling' ? 'bg-facefit-purple' : ''}
                 onClick={() => setActivityType('cycling')}
               >
-                <Bicycle className="h-4 w-4 mr-2" />
+                <Activity className="h-4 w-4 mr-2" />
                 Cycling
               </Button>
               <Button 
@@ -111,7 +111,7 @@ const ActivityClubFinder: React.FC = () => {
                 className={activityType === 'mma' ? 'bg-facefit-purple' : ''}
                 onClick={() => setActivityType('mma')}
               >
-                <Boxing className="h-4 w-4 mr-2" />
+                <Users className="h-4 w-4 mr-2" />
                 MMA
               </Button>
             </div>

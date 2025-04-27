@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin, Camera, Running, Bicycle, Video } from "lucide-react";
+import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin, Camera, MessageSquare, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -27,9 +27,9 @@ const Navigation: React.FC = () => {
 
   const moreNavItems: NavItem[] = [
     { icon: Ruler, label: "Measurements", path: "/measurements" },
-    { icon: Running, label: "Trails", path: "/running-trails" },
-    { icon: Bicycle, label: "Activity Clubs", path: "/activity-clubs" },
-    { icon: Video, label: "Record Workout", path: "/workout-recorder" },
+    { icon: Map, label: "Trails", path: "/running-trails" },
+    { icon: Users, label: "Activity Clubs", path: "/activity-clubs" },
+    { icon: Camera, label: "Record Workout", path: "/workout-recorder" },
   ];
 
   const handleNavigation = (path: string) => {
