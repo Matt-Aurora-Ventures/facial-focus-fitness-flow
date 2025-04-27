@@ -23,7 +23,7 @@ const ActivityBanner: React.FC = () => {
 
   return (
     <div className="w-full mb-6">
-      <Carousel className="w-full" autoplay={true} loop={true}>
+      <Carousel className="w-full" opts={{ loop: true }}>
         <CarouselContent>
           {activities.map((activity) => (
             <CarouselItem key={activity.id}>

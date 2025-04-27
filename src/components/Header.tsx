@@ -15,7 +15,7 @@ const Header: React.FC = () => {
             <ScanFace className="h-5 w-5 text-white" />
           </div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-facefit-purple to-facefit-blue bg-clip-text text-transparent">
-            FaceFit
+            Insightly
           </h1>
         </div>
         

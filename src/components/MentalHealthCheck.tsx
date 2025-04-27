@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,14 +48,12 @@ const MentalHealthCheck: React.FC = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         setAudioBlob(audioBlob);
         
-        // Stop all tracks of the stream to release the microphone
         stream.getTracks().forEach(track => track.stop());
       };
       
       mediaRecorderRef.current.start(100);
       setIsRecording(true);
       
-      // Start a timer to track recording duration
       setRecordingTime(0);
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
@@ -77,7 +74,6 @@ const MentalHealthCheck: React.FC = () => {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       
-      // Clear the timer
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -114,7 +110,7 @@ const MentalHealthCheck: React.FC = () => {
       return;
     }
     
-    if (recordingTime < 45 && !audioBlob.name) {  // If it's a recording (not uploaded file) and too short
+    if (recordingTime < 45 && !('type' in audioBlob)) {  // Check if it's a recorded blob vs uploaded file
       toast({
         title: "Recording Too Short",
         description: "Please record at least 45 seconds of audio for accurate analysis.",
@@ -126,14 +122,11 @@ const MentalHealthCheck: React.FC = () => {
     try {
       setIsAnalyzing(true);
       
-      // Simulate API call to Insight Genesis Voice Analysis
-      // In a real implementation, you would make an actual API call here
       await new Promise(resolve => setTimeout(resolve, 2500));
       
-      // Mock analysis results
       const mockAnalysis: VoiceAnalysis = {
         emotionalState: "Mostly calm with some underlying tension",
-        stressLevel: Math.floor(Math.random() * 70) + 10, // Random stress level between 10-80%
+        stressLevel: Math.floor(Math.random() * 70) + 10,
         confidence: 85,
         recommendations: [
           "Consider practicing mindfulness for 10 minutes daily",
@@ -144,7 +137,6 @@ const MentalHealthCheck: React.FC = () => {
       
       setVoiceAnalysis(mockAnalysis);
       
-      // Add a message from the AI based on the analysis
       setChatMessages(prev => [
         ...prev, 
         { 
@@ -173,20 +165,16 @@ const MentalHealthCheck: React.FC = () => {
   const sendMessage = async () => {
     if (!userMessage.trim()) return;
     
-    // Add user message to chat
     const newMessage = { role: 'user' as const, content: userMessage };
     setChatMessages(prev => [...prev, newMessage]);
     setUserMessage('');
     
     try {
-      // Simulate AI response delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Generate a contextual response based on voice analysis if available
       let aiResponse = "";
       
       if (voiceAnalysis) {
-        // Personalize response based on analysis
         if (userMessage.toLowerCase().includes("feel") || userMessage.toLowerCase().includes("feeling")) {
           aiResponse = `I understand you're exploring your feelings. Based on your voice analysis, I detected ${voiceAnalysis.emotionalState.toLowerCase()}. Would you like some specific techniques to help with that?`;
         } else if (userMessage.toLowerCase().includes("stress") || userMessage.toLowerCase().includes("anxious")) {
@@ -195,11 +183,9 @@ const MentalHealthCheck: React.FC = () => {
           aiResponse = `Thank you for sharing. Based on what I understand about your current mental state, it might help to focus on ${voiceAnalysis.recommendations[Math.floor(Math.random() * voiceAnalysis.recommendations.length)].toLowerCase()}. Would you like to explore this further?`;
         }
       } else {
-        // Generic responses without voice analysis
         aiResponse = "I'm here to support you. To provide more personalized guidance, it would be helpful to analyze your voice patterns. Would you like to record a voice sample?";
       }
       
-      // Add AI response to chat
       setChatMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
       
     } catch (error) {
@@ -224,10 +210,8 @@ const MentalHealthCheck: React.FC = () => {
         description: "Combining mental and physical data..."
       });
       
-      // Simulate processing time
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // In a real implementation, this would combine data from other parts of the app
       const analysisText = `
         ## Comprehensive Wellness Report
         
@@ -273,7 +257,6 @@ const MentalHealthCheck: React.FC = () => {
       <h1 className="text-3xl font-bold mb-6">Mental Health Check</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Voice Analysis Section */}
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle>Voice Analysis</CardTitle>
@@ -281,7 +264,6 @@ const MentalHealthCheck: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {/* Recording Controls */}
               <div className="flex flex-col items-center">
                 <div className="w-full mb-4">
                   {isRecording && (
@@ -331,7 +313,6 @@ const MentalHealthCheck: React.FC = () => {
                 </div>
               </div>
               
-              {/* Audio Preview */}
               {audioBlob && !isRecording && (
                 <div className="pt-4">
                   <p className="text-sm font-medium mb-2">Audio Preview</p>
@@ -356,7 +337,6 @@ const MentalHealthCheck: React.FC = () => {
             </div>
           </CardContent>
           
-          {/* Analysis Results */}
           {voiceAnalysis && (
             <CardFooter className="flex flex-col items-start border-t pt-6">
               <h3 className="font-semibold text-lg mb-3">Analysis Results</h3>
@@ -398,7 +378,6 @@ const MentalHealthCheck: React.FC = () => {
           )}
         </Card>
         
-        {/* AI Chat Section */}
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle>Mental Health Assistant</CardTitle>
@@ -444,7 +423,6 @@ const MentalHealthCheck: React.FC = () => {
         </Card>
       </div>
       
-      {/* Overall Analysis Section */}
       <div className="mt-8">
         <Button 
           onClick={generateOverallAnalysis} 
