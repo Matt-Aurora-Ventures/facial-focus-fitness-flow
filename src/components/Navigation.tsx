@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin, Camera, MessageSquare, Map } from "lucide-react";
+import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin, Camera, MessageSquare, Map, Activity, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -21,15 +21,16 @@ const Navigation: React.FC = () => {
     { icon: ScanFace, label: "Home", path: "/" },
     { icon: Droplet, label: "Water", path: "/water" },
     { icon: Dumbbell, label: "Workouts", path: "/workouts" },
+    { icon: Heart, label: "Mental", path: "/mental-health" },
     { icon: Users, label: "Social", path: "/social" },
-    { icon: MapPin, label: "Gyms", path: "/gyms" },
   ];
 
   const moreNavItems: NavItem[] = [
     { icon: Ruler, label: "Measurements", path: "/measurements" },
     { icon: Map, label: "Trails", path: "/running-trails" },
-    { icon: Users, label: "Activity Clubs", path: "/activity-clubs" },
+    { icon: Activity, label: "Activity Clubs", path: "/activity-clubs" },
     { icon: Camera, label: "Record Workout", path: "/workout-recorder" },
+    { icon: MapPin, label: "Gyms", path: "/gyms" },
   ];
 
   const handleNavigation = (path: string) => {

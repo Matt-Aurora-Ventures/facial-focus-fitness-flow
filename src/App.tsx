@@ -15,6 +15,7 @@ import MeasurementsPage from "./pages/Measurements";
 import ActivityClubsPage from "./pages/ActivityClubs";
 import RunningTrailsPage from "./pages/RunningTrails";
 import WorkoutRecorderPage from "./pages/WorkoutRecorder";
+import MentalHealthPage from "./pages/MentalHealth";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/activity-clubs" element={<ActivityClubsPage />} />
           <Route path="/running-trails" element={<RunningTrailsPage />} />
           <Route path="/workout-recorder" element={<WorkoutRecorderPage />} />
+          <Route path="/mental-health" element={<MentalHealthPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
