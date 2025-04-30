@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin, Camera, MessageSquare, Map, Activity, Heart } from "lucide-react";
+import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin, Camera, Map, Activity, Heart, BookOpen, Utensils, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -20,9 +20,9 @@ const Navigation: React.FC = () => {
   const mainNavItems: NavItem[] = [
     { icon: ScanFace, label: "Home", path: "/" },
     { icon: Droplet, label: "Water", path: "/water" },
+    { icon: Utensils, label: "Nutrition", path: "/nutrition" },
     { icon: Dumbbell, label: "Workouts", path: "/workouts" },
     { icon: Heart, label: "Mental", path: "/mental-health" },
-    { icon: Users, label: "Social", path: "/social" },
   ];
 
   const moreNavItems: NavItem[] = [
@@ -31,6 +31,9 @@ const Navigation: React.FC = () => {
     { icon: Activity, label: "Activity Clubs", path: "/activity-clubs" },
     { icon: Camera, label: "Record Workout", path: "/workout-recorder" },
     { icon: MapPin, label: "Gyms", path: "/gyms" },
+    { icon: Users, label: "Social", path: "/social" },
+    { icon: BookOpen, label: "Exercise Library", path: "/exercises" },
+    { icon: Apple, label: "Diet Plan", path: "/diet-plan" },
   ];
 
   const handleNavigation = (path: string) => {
