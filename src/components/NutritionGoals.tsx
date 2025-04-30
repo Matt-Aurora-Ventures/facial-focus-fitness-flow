@@ -156,8 +156,7 @@ const NutritionGoals: React.FC = () => {
             ) : (
               <Progress 
                 value={calculatePercentage(dailyNutrition.protein, goals.protein)} 
-                className="h-2 bg-muted"
-                indicatorClassName="bg-facefit-purple"
+                className="h-2 bg-muted [&>div]:bg-facefit-purple"
               />
             )}
           </div>
@@ -188,8 +187,7 @@ const NutritionGoals: React.FC = () => {
             ) : (
               <Progress 
                 value={calculatePercentage(dailyNutrition.carbs, goals.carbs)} 
-                className="h-2 bg-muted"
-                indicatorClassName="bg-blue-500"
+                className="h-2 bg-muted [&>div]:bg-blue-500"
               />
             )}
           </div>
@@ -220,8 +218,7 @@ const NutritionGoals: React.FC = () => {
             ) : (
               <Progress 
                 value={calculatePercentage(dailyNutrition.fat, goals.fat)} 
-                className="h-2 bg-muted"
-                indicatorClassName="bg-yellow-500"
+                className="h-2 bg-muted [&>div]:bg-yellow-500"
               />
             )}
           </div>
