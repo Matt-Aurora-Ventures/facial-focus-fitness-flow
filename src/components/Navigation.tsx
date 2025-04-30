@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin, Camera, Map, Activity, Heart, BookOpen, Utensils, Calendar } from "lucide-react";
+import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin, Camera, Map, Activity, Heart, BookOpen, Utensils, Calendar, Target, FileImage } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -34,6 +33,9 @@ const Navigation: React.FC = () => {
     { icon: Users, label: "Social", path: "/social" },
     { icon: BookOpen, label: "Exercise Library", path: "/exercises" },
     { icon: Apple, label: "Diet Plan", path: "/diet-plan" },
+    { icon: Calendar, label: "Workout Planner", path: "/workout-planner" },
+    { icon: FileImage, label: "Progress Photos", path: "/progress-photos" },
+    { icon: Target, label: "Nutrition Goals", path: "/nutrition-goals" },
   ];
 
   const handleNavigation = (path: string) => {
