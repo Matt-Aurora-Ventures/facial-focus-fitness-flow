@@ -35,6 +35,8 @@ interface FoodItem {
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
 }
 
+type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
 const FoodDiary: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [foodEntries, setFoodEntries] = useState<FoodItem[]>([
@@ -64,7 +66,7 @@ const FoodDiary: React.FC = () => {
     protein: '',
     carbs: '',
     fat: '',
-    mealType: 'breakfast' as const
+    mealType: 'breakfast' as MealType
   });
   
   const foodDatabase = [
