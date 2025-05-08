@@ -42,6 +42,30 @@ export type Database = {
         }
         Relationships: []
       }
+      mental_health_journal: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          mood_rating: number | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          mood_rating?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          mood_rating?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       mental_health_recommendations: {
         Row: {
           analysis_id: string | null

@@ -6,7 +6,7 @@ import MentalHealthCheck from '@/components/MentalHealthCheck';
 import MentalHealthJournal from '@/components/MentalHealthJournal';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MicSquare, BookText } from "lucide-react";
+import { Mic, BookText } from "lucide-react";
 
 const MentalHealthPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("voice");
@@ -20,7 +20,7 @@ const MentalHealthPage: React.FC = () => {
         <Tabs defaultValue="voice" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
             <TabsTrigger value="voice" className="flex items-center gap-2">
-              <MicSquare className="h-4 w-4" />
+              <Mic className="h-4 w-4" />
               Voice Analysis
             </TabsTrigger>
             <TabsTrigger value="journal" className="flex items-center gap-2">
