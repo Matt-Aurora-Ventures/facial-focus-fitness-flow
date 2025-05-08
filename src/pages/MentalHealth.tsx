@@ -9,7 +9,9 @@ const MentalHealthPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <MentalHealthCheck />
+      <div className="flex-1">
+        <MentalHealthCheck />
+      </div>
       <Footer />
       <Navigation />
     </div>
@@ -17,4 +19,3 @@ const MentalHealthPage: React.FC = () => {
 };
 
 export default MentalHealthPage;
-

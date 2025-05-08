@@ -9,7 +9,68 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      mental_health_analyses: {
+        Row: {
+          analysis_completed: boolean | null
+          audio_url: string | null
+          confidence: number | null
+          created_at: string | null
+          emotional_state: string | null
+          id: string
+          stress_level: number | null
+          user_id: string | null
+        }
+        Insert: {
+          analysis_completed?: boolean | null
+          audio_url?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          emotional_state?: string | null
+          id?: string
+          stress_level?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          analysis_completed?: boolean | null
+          audio_url?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          emotional_state?: string | null
+          id?: string
+          stress_level?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      mental_health_recommendations: {
+        Row: {
+          analysis_id: string | null
+          created_at: string | null
+          id: string
+          recommendation: string
+        }
+        Insert: {
+          analysis_id?: string | null
+          created_at?: string | null
+          id?: string
+          recommendation: string
+        }
+        Update: {
+          analysis_id?: string | null
+          created_at?: string | null
+          id?: string
+          recommendation?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mental_health_recommendations_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "mental_health_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

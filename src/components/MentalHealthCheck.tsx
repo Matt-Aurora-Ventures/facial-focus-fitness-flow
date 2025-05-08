@@ -1,15 +1,20 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Mic, MicOff, Upload, MessageSquare, Activity } from "lucide-react";
+import { Mic, MicOff, Upload, MessageSquare, Activity, Save, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
 
 interface VoiceAnalysis {
   emotionalState: string;
   stressLevel: number;
   confidence: number;
   recommendations: string[];
+  id?: string;
+  created_at?: string;
 }
 
 interface ChatMessage {
@@ -23,6 +28,9 @@ const MentalHealthCheck: React.FC = () => {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [voiceAnalysis, setVoiceAnalysis] = useState<VoiceAnalysis | null>(null);
+  const [pastAnalyses, setPastAnalyses] = useState<VoiceAnalysis[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: 'Hi there! I\'m your mental health assistant. You can upload a voice recording for analysis or chat with me directly about how you\'re feeling today.' }
   ]);
@@ -32,7 +40,51 @@ const MentalHealthCheck: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    // Scroll to the bottom of the chat container whenever messages update
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  useEffect(() => {
+    // Fetch user's past analyses on component mount
+    const fetchPastAnalyses = async () => {
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session?.user) {
+          const { data, error } = await supabase
+            .from('mental_health_analyses')
+            .select('*, mental_health_recommendations(recommendation)')
+            .order('created_at', { ascending: false })
+            .limit(5);
+          
+          if (error) {
+            console.error('Error fetching analyses:', error);
+          } else if (data) {
+            // Transform the data to match our VoiceAnalysis interface
+            const transformedData = data.map(item => ({
+              id: item.id,
+              emotionalState: item.emotional_state,
+              stressLevel: item.stress_level,
+              confidence: item.confidence,
+              created_at: item.created_at,
+              recommendations: item.mental_health_recommendations.map((rec: any) => rec.recommendation)
+            }));
+            
+            setPastAnalyses(transformedData);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching past analyses:', err);
+      }
+    };
+
+    fetchPastAnalyses();
+  }, []);
   
   const startRecording = async () => {
     try {
@@ -100,6 +152,20 @@ const MentalHealthCheck: React.FC = () => {
     }
   };
 
+  const convertBlobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        // Remove the data URL prefix (e.g., "data:audio/wav;base64,")
+        const base64 = base64String.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
   const analyzeVoice = async () => {
     if (!audioBlob) {
       toast({
@@ -110,7 +176,7 @@ const MentalHealthCheck: React.FC = () => {
       return;
     }
     
-    if (recordingTime < 45 && !('type' in audioBlob)) {  // Check if it's a recorded blob vs uploaded file
+    if (recordingTime < 45 && audioBlob.type === 'audio/wav') {
       toast({
         title: "Recording Too Short",
         description: "Please record at least 45 seconds of audio for accurate analysis.",
@@ -122,26 +188,63 @@ const MentalHealthCheck: React.FC = () => {
     try {
       setIsAnalyzing(true);
       
-      await new Promise(resolve => setTimeout(resolve, 2500));
+      // Convert blob to base64
+      const base64Audio = await convertBlobToBase64(audioBlob);
       
-      const mockAnalysis: VoiceAnalysis = {
-        emotionalState: "Mostly calm with some underlying tension",
-        stressLevel: Math.floor(Math.random() * 70) + 10,
-        confidence: 85,
-        recommendations: [
-          "Consider practicing mindfulness for 10 minutes daily",
-          "Ensure you're getting adequate sleep",
-          "Maintain social connections for emotional support"
-        ]
-      };
+      // Get current user session
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
       
-      setVoiceAnalysis(mockAnalysis);
+      // Call the edge function
+      const { data: analysisResult, error } = await supabase.functions.invoke('analyze-voice', {
+        body: { audioData: base64Audio, userId },
+      });
       
+      if (error) {
+        throw new Error(`Edge function error: ${error.message}`);
+      }
+      
+      // Save analysis to Supabase
+      const analysisId = uuidv4();
+      
+      if (userId) {
+        // Insert the analysis
+        await supabase.from('mental_health_analyses').insert({
+          id: analysisId,
+          user_id: userId,
+          emotional_state: analysisResult.emotionalState,
+          stress_level: analysisResult.stressLevel,
+          confidence: analysisResult.confidence,
+          analysis_completed: true
+        });
+        
+        // Insert the recommendations
+        const recommendationsToInsert = analysisResult.recommendations.map((rec: string) => ({
+          analysis_id: analysisId,
+          recommendation: rec
+        }));
+        
+        await supabase.from('mental_health_recommendations').insert(recommendationsToInsert);
+        
+        // Add to past analyses for immediate display
+        setPastAnalyses(prev => [{
+          id: analysisId,
+          emotionalState: analysisResult.emotionalState,
+          stressLevel: analysisResult.stressLevel,
+          confidence: analysisResult.confidence,
+          created_at: new Date().toISOString(),
+          recommendations: analysisResult.recommendations
+        }, ...prev]);
+      }
+      
+      setVoiceAnalysis(analysisResult);
+      
+      // Add AI message to chat
       setChatMessages(prev => [
         ...prev, 
         { 
           role: 'assistant', 
-          content: `Based on your voice analysis, I can detect that you're ${mockAnalysis.emotionalState.toLowerCase()}. Your stress level appears to be ${mockAnalysis.stressLevel < 30 ? 'low' : mockAnalysis.stressLevel < 70 ? 'moderate' : 'high'}. Would you like to discuss any specific concerns?` 
+          content: `Based on your voice analysis, I can detect that you're ${analysisResult.emotionalState.toLowerCase()}. Your stress level appears to be ${analysisResult.stressLevel < 30 ? 'low' : analysisResult.stressLevel < 70 ? 'moderate' : 'high'}. Would you like to discuss any specific concerns?` 
         }
       ]);
       
@@ -170,6 +273,7 @@ const MentalHealthCheck: React.FC = () => {
     setUserMessage('');
     
     try {
+      // Simple delay to simulate AI thinking
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       let aiResponse = "";
@@ -192,6 +296,64 @@ const MentalHealthCheck: React.FC = () => {
       console.error("Error getting AI response:", error);
       setChatMessages(prev => [...prev, { role: 'assistant', content: "I apologize, but I'm having trouble responding right now. Please try again later." }]);
     }
+  };
+
+  const loadPastAnalyses = async () => {
+    setIsLoadingHistory(true);
+    setShowHistory(!showHistory);
+    
+    if (!showHistory) {
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session?.user) {
+          const { data, error } = await supabase
+            .from('mental_health_analyses')
+            .select('*, mental_health_recommendations(recommendation)')
+            .order('created_at', { ascending: false });
+          
+          if (error) {
+            throw error;
+          }
+          
+          if (data) {
+            // Transform the data to match our VoiceAnalysis interface
+            const transformedData = data.map(item => ({
+              id: item.id,
+              emotionalState: item.emotional_state,
+              stressLevel: item.stress_level,
+              confidence: item.confidence,
+              created_at: item.created_at,
+              recommendations: item.mental_health_recommendations.map((rec: any) => rec.recommendation)
+            }));
+            
+            setPastAnalyses(transformedData);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading history:', error);
+        toast({
+          title: "Error Loading History",
+          description: "There was a problem loading your past analyses.",
+          variant: "destructive"
+        });
+      }
+    }
+    
+    setIsLoadingHistory(false);
+  };
+
+  const selectPastAnalysis = (analysis: VoiceAnalysis) => {
+    setVoiceAnalysis(analysis);
+    setShowHistory(false);
+    
+    // Add message to chat about the selected analysis
+    setChatMessages(prev => [
+      ...prev, 
+      { 
+        role: 'assistant', 
+        content: `I've loaded your analysis from ${new Date(analysis.created_at!).toLocaleString()}. At that time, your emotional state was: ${analysis.emotionalState} with a stress level of ${analysis.stressLevel}%. Would you like to discuss how you're feeling now compared to then?` 
+      }
+    ]);
   };
 
   const generateOverallAnalysis = async () => {
@@ -227,7 +389,7 @@ const MentalHealthCheck: React.FC = () => {
         
         **Recommendations:**
         1. ${voiceAnalysis.recommendations[0]}
-        2. ${voiceAnalysis.recommendations[1]}
+        2. ${voiceAnalysis.recommendations[1] || "Take time for self-reflection each day"}
         3. Consider increasing physical activity by 15%
         4. Maintain consistent hydration throughout the day
         
@@ -252,6 +414,11 @@ const MentalHealthCheck: React.FC = () => {
     return `${mins}:${secs}`;
   };
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleString();
+  };
+
   return (
     <div className="container max-w-4xl mx-auto px-4 py-6">
       <h1 className="text-3xl font-bold mb-6">Mental Health Check</h1>
@@ -259,87 +426,139 @@ const MentalHealthCheck: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="shadow-md">
           <CardHeader>
-            <CardTitle>Voice Analysis</CardTitle>
-            <CardDescription>Record or upload at least 45 seconds of speech for analysis</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="flex flex-col items-center">
-                <div className="w-full mb-4">
-                  {isRecording && (
-                    <div className="flex flex-col items-center">
-                      <div className="w-full bg-secondary rounded-full h-2 mb-2">
-                        <div className="bg-facefit-purple h-2 rounded-full animate-pulse" style={{ width: `${Math.min(100, (recordingTime / 45) * 100)}%` }}></div>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Recording: {formatTime(recordingTime)}</p>
-                        <p className="text-xs text-muted-foreground">{recordingTime < 45 ? `${45 - recordingTime} more seconds recommended` : 'Minimum length reached'}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <Button
-                    onClick={isRecording ? stopRecording : startRecording}
-                    variant={isRecording ? "destructive" : "default"}
-                    className={isRecording ? "bg-red-500" : "bg-facefit-purple"}
-                  >
-                    {isRecording ? (
-                      <>
-                        <MicOff className="h-4 w-4 mr-2" />
-                        Stop Recording
-                      </>
-                    ) : (
-                      <>
-                        <Mic className="h-4 w-4 mr-2" />
-                        Start Recording
-                      </>
-                    )}
-                  </Button>
-                  
-                  <div className="relative">
-                    <Button variant="outline">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Audio
-                    </Button>
-                    <input
-                      type="file"
-                      accept="audio/*"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={handleFileUpload}
-                    />
-                  </div>
-                </div>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Voice Analysis</CardTitle>
+                <CardDescription>Record or upload at least 45 seconds of speech for analysis</CardDescription>
               </div>
-              
-              {audioBlob && !isRecording && (
-                <div className="pt-4">
-                  <p className="text-sm font-medium mb-2">Audio Preview</p>
-                  <audio src={URL.createObjectURL(audioBlob)} controls className="w-full" />
-                </div>
-              )}
-              
               <Button 
-                onClick={analyzeVoice} 
-                disabled={!audioBlob || isRecording || isAnalyzing}
-                className="w-full bg-facefit-purple hover:bg-facefit-purple/90"
+                variant="outline" 
+                size="sm"
+                onClick={loadPastAnalyses}
+                disabled={isLoadingHistory}
               >
-                {isAnalyzing ? (
-                  <>
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
-                    Analyzing Voice...
-                  </>
+                {isLoadingHistory ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-1"></div>
                 ) : (
-                  'Analyze Voice'
+                  <History className="h-4 w-4 mr-1" />
                 )}
+                {showHistory ? 'Hide History' : 'Show History'}
               </Button>
             </div>
+          </CardHeader>
+          
+          <CardContent>
+            {showHistory ? (
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium">Your Past Analyses</h3>
+                {pastAnalyses.length > 0 ? (
+                  <div className="space-y-3">
+                    {pastAnalyses.map((analysis) => (
+                      <div 
+                        key={analysis.id} 
+                        className="p-3 border rounded-md cursor-pointer hover:bg-secondary"
+                        onClick={() => selectPastAnalysis(analysis)}
+                      >
+                        <div className="flex justify-between items-center mb-1">
+                          <p className="text-xs text-muted-foreground">{formatDate(analysis.created_at)}</p>
+                          <span className="text-xs font-medium px-2 py-0.5 bg-gray-100 rounded-full">
+                            {analysis.stressLevel}% stress
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium">{analysis.emotionalState}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No past analyses found.</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex flex-col items-center">
+                  <div className="w-full mb-4">
+                    {isRecording && (
+                      <div className="flex flex-col items-center">
+                        <div className="w-full bg-secondary rounded-full h-2 mb-2">
+                          <div className="bg-facefit-purple h-2 rounded-full animate-pulse" style={{ width: `${Math.min(100, (recordingTime / 45) * 100)}%` }}></div>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground">Recording: {formatTime(recordingTime)}</p>
+                          <p className="text-xs text-muted-foreground">{recordingTime < 45 ? `${45 - recordingTime} more seconds recommended` : 'Minimum length reached'}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <Button
+                      onClick={isRecording ? stopRecording : startRecording}
+                      variant={isRecording ? "destructive" : "default"}
+                      className={isRecording ? "bg-red-500" : "bg-facefit-purple"}
+                    >
+                      {isRecording ? (
+                        <>
+                          <MicOff className="h-4 w-4 mr-2" />
+                          Stop Recording
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="h-4 w-4 mr-2" />
+                          Start Recording
+                        </>
+                      )}
+                    </Button>
+                    
+                    <div className="relative">
+                      <Button variant="outline">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Audio
+                      </Button>
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        onChange={handleFileUpload}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {audioBlob && !isRecording && (
+                  <div className="pt-4">
+                    <p className="text-sm font-medium mb-2">Audio Preview</p>
+                    <audio src={URL.createObjectURL(audioBlob)} controls className="w-full" />
+                  </div>
+                )}
+                
+                <Button 
+                  onClick={analyzeVoice} 
+                  disabled={!audioBlob || isRecording || isAnalyzing}
+                  className="w-full bg-facefit-purple hover:bg-facefit-purple/90"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
+                      Analyzing Voice...
+                    </>
+                  ) : (
+                    'Analyze Voice'
+                  )}
+                </Button>
+              </div>
+            )}
           </CardContent>
           
-          {voiceAnalysis && (
+          {voiceAnalysis && !showHistory && (
             <CardFooter className="flex flex-col items-start border-t pt-6">
-              <h3 className="font-semibold text-lg mb-3">Analysis Results</h3>
+              <div className="flex justify-between items-center w-full mb-3">
+                <h3 className="font-semibold text-lg">Analysis Results</h3>
+                
+                <Button variant="ghost" size="sm">
+                  <Save className="h-4 w-4 mr-1" />
+                  Save
+                </Button>
+              </div>
               
               <div className="w-full space-y-4">
                 <div>
@@ -384,7 +603,7 @@ const MentalHealthCheck: React.FC = () => {
             <CardDescription>Chat with your personal well-being advisor</CardDescription>
           </CardHeader>
           <CardContent className="h-[400px] flex flex-col">
-            <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto mb-4 space-y-4">
               {chatMessages.map((message, index) => (
                 <div
                   key={index}
