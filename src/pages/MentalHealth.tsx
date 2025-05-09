@@ -4,10 +4,9 @@ import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import MentalHealthCheck from '@/components/MentalHealthCheck';
 import MentalHealthJournal from '@/components/MentalHealthJournal';
-import GeminiPricing from '@/components/GeminiPricing';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mic, BookText, Info } from "lucide-react";
+import { Mic, BookText } from "lucide-react";
 
 const MentalHealthPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("voice");
@@ -19,7 +18,7 @@ const MentalHealthPage: React.FC = () => {
         <h1 className="text-3xl font-bold mb-6">Mental Health Center</h1>
         
         <Tabs defaultValue="voice" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
             <TabsTrigger value="voice" className="flex items-center gap-2">
               <Mic className="h-4 w-4" />
               Voice Analysis
@@ -28,19 +27,12 @@ const MentalHealthPage: React.FC = () => {
               <BookText className="h-4 w-4" />
               Journal
             </TabsTrigger>
-            <TabsTrigger value="pricing" className="flex items-center gap-2">
-              <Info className="h-4 w-4" />
-              Gemini Pricing
-            </TabsTrigger>
           </TabsList>
           <TabsContent value="voice">
             <MentalHealthCheck />
           </TabsContent>
           <TabsContent value="journal">
             <MentalHealthJournal />
-          </TabsContent>
-          <TabsContent value="pricing">
-            <GeminiPricing />
           </TabsContent>
         </Tabs>
       </div>
