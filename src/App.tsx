@@ -24,6 +24,7 @@ import ProgressPhotosPage from "./pages/ProgressPhotosPage";
 import NutritionGoalsPage from "./pages/NutritionGoalsPage";
 import WaterGoalsPage from "./pages/WaterGoalsPage";
 import WeightTrackerPage from "./pages/WeightTrackerPage";
+import GeminiPage from "./pages/GeminiPage";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
           <Route path="/nutrition-goals" element={<NutritionGoalsPage />} />
           <Route path="/water-goals" element={<WaterGoalsPage />} />
           <Route path="/weight-tracker" element={<WeightTrackerPage />} />
+          <Route path="/gemini" element={<GeminiPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

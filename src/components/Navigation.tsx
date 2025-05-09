@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin, Camera, Map, Activity, Heart, BookOpen, Utensils, Calendar, Target, FileImage, DropletIcon, Scale } from "lucide-react";
+import { ScanFace, Droplet, Apple, Dumbbell, Ruler, Users, MapPin, Camera, Map, Activity, Heart, BookOpen, Utensils, Calendar, Target, FileImage, DropletIcon, Scale, Sparkle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -22,10 +22,11 @@ const Navigation: React.FC = () => {
     { icon: Droplet, label: "Water", path: "/water" },
     { icon: Utensils, label: "Nutrition", path: "/nutrition" },
     { icon: Dumbbell, label: "Workouts", path: "/workouts" },
-    { icon: Heart, label: "Mental", path: "/mental-health" },
+    { icon: Sparkle, label: "Gemini AI", path: "/gemini" },
   ];
 
   const moreNavItems: NavItem[] = [
+    { icon: Heart, label: "Mental", path: "/mental-health" },
     { icon: Scale, label: "Weight", path: "/weight-tracker" },
     { icon: Ruler, label: "Measurements", path: "/measurements" },
     { icon: Map, label: "Trails", path: "/running-trails" },
