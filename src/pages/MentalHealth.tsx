@@ -9,8 +9,9 @@ import ReportAgent from '@/components/ReportAgent';
 import FitnessAdvisor from '@/components/FitnessAdvisor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { FileText, Brain, Dumbbell, Heart } from 'lucide-react';
+import { FileText, Brain, Dumbbell, Heart, Clock } from 'lucide-react';
 import WorkoutPlanner from '@/components/WorkoutPlanner';
+import MeditationTimer from '@/components/MeditationTimer';
 
 const MentalHealthPage = () => {
   const [reportOpen, setReportOpen] = useState(false);
@@ -41,6 +42,10 @@ const MentalHealthPage = () => {
                 <FileText className="mr-2 h-4 w-4" />
                 Workout Planner
               </TabsTrigger>
+              <TabsTrigger value="meditation">
+                <Clock className="mr-2 h-4 w-4" />
+                Meditation
+              </TabsTrigger>
             </TabsList>
             
             <Button 
@@ -66,6 +71,10 @@ const MentalHealthPage = () => {
             
             <TabsContent value="planner" className="mt-6">
               <WorkoutPlanner />
+            </TabsContent>
+            
+            <TabsContent value="meditation" className="mt-6">
+              <MeditationTimer />
             </TabsContent>
           </Tabs>
         </div>
