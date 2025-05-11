@@ -9,7 +9,8 @@ import ReportAgent from '@/components/ReportAgent';
 import FitnessAdvisor from '@/components/FitnessAdvisor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { FileText } from 'lucide-react';
+import { FileText, Brain, Dumbbell, Heart } from 'lucide-react';
+import WorkoutPlanner from '@/components/WorkoutPlanner';
 
 const MentalHealthPage = () => {
   const [reportOpen, setReportOpen] = useState(false);
@@ -23,10 +24,23 @@ const MentalHealthPage = () => {
         
         <div className="flex justify-between items-center mb-6">
           <Tabs defaultValue="journal" className="w-full">
-            <TabsList>
-              <TabsTrigger value="journal">Journal</TabsTrigger>
-              <TabsTrigger value="check">Daily Check-in</TabsTrigger>
-              <TabsTrigger value="fitness">Fitness Advisor</TabsTrigger>
+            <TabsList className="mb-4">
+              <TabsTrigger value="journal">
+                <Brain className="mr-2 h-4 w-4" />
+                Journal
+              </TabsTrigger>
+              <TabsTrigger value="check">
+                <Heart className="mr-2 h-4 w-4" />
+                Daily Check-in
+              </TabsTrigger>
+              <TabsTrigger value="fitness">
+                <Dumbbell className="mr-2 h-4 w-4" />
+                Fitness Advisor
+              </TabsTrigger>
+              <TabsTrigger value="planner">
+                <FileText className="mr-2 h-4 w-4" />
+                Workout Planner
+              </TabsTrigger>
             </TabsList>
             
             <Button 
@@ -48,6 +62,10 @@ const MentalHealthPage = () => {
             
             <TabsContent value="fitness" className="mt-6">
               <FitnessAdvisor />
+            </TabsContent>
+            
+            <TabsContent value="planner" className="mt-6">
+              <WorkoutPlanner />
             </TabsContent>
           </Tabs>
         </div>

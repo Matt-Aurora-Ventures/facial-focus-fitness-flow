@@ -6,12 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Brain, Activity, FileText, Clock, Save, Plus, X } from "lucide-react";
+import { Loader2, Brain, Activity, FileText, Clock, Save, Plus, X, Calendar, Trophy, ArrowRight, BarChart, Dumbbell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateTextWithGemini } from "@/utils/geminiApi";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 
 type UserData = {
   mentalHealthEntries?: {
@@ -26,14 +27,9 @@ type UserData = {
     date: string;
     content: string;
   };
-  exerciseLog?: {
-    id: string;
-    date: string;
-    name: string;
-    duration: number;
-    intensity: 'low' | 'moderate' | 'high';
-    notes: string;
-  }[];
+  exerciseLog?: Exercise[];
+  weeklyGoal?: number;
+  completedWorkouts?: number;
 };
 
 type Exercise = {
@@ -45,6 +41,20 @@ type Exercise = {
   notes: string;
 };
 
+type WorkoutTemplate = {
+  id: string;
+  name: string;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  type: string;
+  duration: number;
+  exercises: {
+    name: string;
+    sets: number;
+    reps: number;
+    restTime: number;
+  }[];
+};
+
 const FitnessAdvisor: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<UserData>({});
@@ -54,6 +64,7 @@ const FitnessAdvisor: React.FC = () => {
   const [advice, setAdvice] = useState<string | null>(null);
   const [showCompileDialog, setShowCompileDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('preferences');
+  const [goalSettingTab, setGoalSettingTab] = useState('weekly');
   const { toast } = useToast();
   
   // Exercise logging states
@@ -62,6 +73,54 @@ const FitnessAdvisor: React.FC = () => {
   const [exerciseIntensity, setExerciseIntensity] = useState<'low' | 'moderate' | 'high'>('moderate');
   const [exerciseNotes, setExerciseNotes] = useState('');
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  
+  // Goal tracking states
+  const [weeklyWorkoutGoal, setWeeklyWorkoutGoal] = useState<number>(3);
+  const [completedWorkouts, setCompletedWorkouts] = useState<number>(0);
+  
+  // Workout templates
+  const [workoutTemplates, setWorkoutTemplates] = useState<WorkoutTemplate[]>([
+    {
+      id: "1",
+      name: "Quick Morning Energizer",
+      level: "beginner",
+      type: "HIIT",
+      duration: 15,
+      exercises: [
+        { name: "Jumping Jacks", sets: 3, reps: 20, restTime: 15 },
+        { name: "Bodyweight Squats", sets: 3, reps: 15, restTime: 15 },
+        { name: "Push-ups", sets: 2, reps: 10, restTime: 30 },
+        { name: "Plank", sets: 3, reps: 30, restTime: 15 }
+      ]
+    },
+    {
+      id: "2",
+      name: "Stress Relief Yoga Flow",
+      level: "beginner",
+      type: "Yoga",
+      duration: 20,
+      exercises: [
+        { name: "Child's Pose", sets: 1, reps: 60, restTime: 0 },
+        { name: "Cat-Cow Stretch", sets: 1, reps: 10, restTime: 0 },
+        { name: "Downward Dog", sets: 1, reps: 60, restTime: 0 },
+        { name: "Sun Salutation", sets: 3, reps: 1, restTime: 15 }
+      ]
+    },
+    {
+      id: "3",
+      name: "Full Body Strength",
+      level: "intermediate",
+      type: "Strength",
+      duration: 45,
+      exercises: [
+        { name: "Dumbbell Squats", sets: 4, reps: 12, restTime: 60 },
+        { name: "Push-ups", sets: 3, reps: 15, restTime: 45 },
+        { name: "Bent-over Rows", sets: 3, reps: 12, restTime: 45 },
+        { name: "Lunges", sets: 3, reps: 10, restTime: 45 },
+        { name: "Shoulder Press", sets: 3, reps: 12, restTime: 45 }
+      ]
+    }
+  ]);
   
   // Get user session and stored data
   useEffect(() => {
@@ -78,6 +137,8 @@ const FitnessAdvisor: React.FC = () => {
           setFitnessLevel(parsedData.fitnessLevel || '');
           setHealthConditions(parsedData.healthConditions || '');
           setExercises(parsedData.exerciseLog || []);
+          setWeeklyWorkoutGoal(parsedData.weeklyGoal || 3);
+          setCompletedWorkouts(parsedData.completedWorkouts || 0);
         }
         
         // If user is authenticated, try to load from database
@@ -138,7 +199,9 @@ const FitnessAdvisor: React.FC = () => {
       ...userData,
       fitnessGoals,
       healthConditions,
-      exerciseLog: exercises
+      exerciseLog: exercises,
+      weeklyGoal: weeklyWorkoutGoal,
+      completedWorkouts: completedWorkouts
     };
     
     // Only add fitnessLevel if it's a valid value
@@ -200,9 +263,11 @@ const FitnessAdvisor: React.FC = () => {
     // Update userData with the new exercise
     const updatedData = {
       ...userData,
-      exerciseLog: updatedExercises
+      exerciseLog: updatedExercises,
+      completedWorkouts: completedWorkouts + 1
     };
     
+    setCompletedWorkouts(prev => prev + 1);
     setUserData(updatedData);
     localStorage.setItem('fitnessAdvisorData', JSON.stringify(updatedData));
     
@@ -225,15 +290,32 @@ const FitnessAdvisor: React.FC = () => {
     // Update userData with the filtered exercises
     const updatedData = {
       ...userData,
-      exerciseLog: updatedExercises
+      exerciseLog: updatedExercises,
+      completedWorkouts: completedWorkouts > 0 ? completedWorkouts - 1 : 0
     };
     
+    setCompletedWorkouts(prev => prev > 0 ? prev - 1 : 0);
     setUserData(updatedData);
     localStorage.setItem('fitnessAdvisorData', JSON.stringify(updatedData));
     
     toast({
       title: "Exercise removed",
       description: "The exercise has been deleted from your log."
+    });
+  };
+  
+  const updateGoals = () => {
+    const updatedData = {
+      ...userData,
+      weeklyGoal: weeklyWorkoutGoal
+    };
+    
+    setUserData(updatedData);
+    localStorage.setItem('fitnessAdvisorData', JSON.stringify(updatedData));
+    
+    toast({
+      title: "Goals updated",
+      description: "Your fitness goals have been updated."
     });
   };
   
@@ -258,6 +340,8 @@ const FitnessAdvisor: React.FC = () => {
       const exercisesSummary = exercises?.map(
         exercise => `Date: ${exercise.date}, Exercise: ${exercise.name}, Duration: ${exercise.duration} minutes, Intensity: ${exercise.intensity}, Notes: ${exercise.notes || "None"}`
       ).join('\n') || "No exercise entries available.";
+
+      const goalProgress = `Weekly workout goal: ${weeklyWorkoutGoal} workouts. Completed this week: ${completedWorkouts} workouts.`;
       
       const prompt = `
         As a holistic fitness advisor, provide personalized fitness advice based on the following user data:
@@ -273,6 +357,9 @@ const FitnessAdvisor: React.FC = () => {
         RECENT EXERCISE ACTIVITY:
         ${exercisesSummary}
 
+        GOAL TRACKING:
+        ${goalProgress}
+
         Previous Advice Given: ${userData.lastAdvice ? userData.lastAdvice.content : "None"}
 
         Please provide:
@@ -280,7 +367,8 @@ const FitnessAdvisor: React.FC = () => {
         2. Specific exercises that align with their goals and current mental state
         3. Mindfulness practices that could complement their fitness routine
         4. Nutrition recommendations that support both mental and physical wellbeing
-        5. Suggestions for progression based on their current activity level
+        5. Suggestions for progression based on their current activity level and goal progress
+        6. A weekly workout schedule that will help them meet their workout goal
         
         Format the response in markdown with clear sections.
       `;
@@ -326,6 +414,21 @@ const FitnessAdvisor: React.FC = () => {
       setShowCompileDialog(true);
     }
   };
+
+  const startWorkoutTemplate = (workout: WorkoutTemplate) => {
+    toast({
+      title: "Workout Started",
+      description: `Starting ${workout.name} workout`
+    });
+    
+    // In a real app, you would navigate to a workout session page
+    // or start a timer, etc.
+  };
+  
+  // Calculate goal progress percentage
+  const goalProgressPercentage = weeklyWorkoutGoal > 0 
+    ? Math.min(Math.round((completedWorkouts / weeklyWorkoutGoal) * 100), 100) 
+    : 0;
   
   return (
     <Card className="shadow-md">
@@ -341,9 +444,11 @@ const FitnessAdvisor: React.FC = () => {
       
       <CardContent className="space-y-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="preferences">Fitness Profile</TabsTrigger>
+          <TabsList className="grid grid-cols-4 mb-4">
+            <TabsTrigger value="preferences">Profile</TabsTrigger>
             <TabsTrigger value="exercises">Exercise Log</TabsTrigger>
+            <TabsTrigger value="goals">Goals</TabsTrigger>
+            <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
           </TabsList>
           
           <TabsContent value="preferences" className="space-y-4">
@@ -497,61 +602,209 @@ const FitnessAdvisor: React.FC = () => {
               )}
             </div>
           </TabsContent>
-        </Tabs>
-        
-        <Dialog open={showCompileDialog} onOpenChange={setShowCompileDialog}>
-          <DialogTrigger asChild>
-            <Button 
-              onClick={compileAdvice} 
-              className="w-full bg-facefit-purple hover:bg-facefit-purple/90"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing Data...
-                </>
-              ) : (
-                <>
-                  <Brain className="mr-2 h-4 w-4" />
-                  Compile Personalized Fitness Advice
-                </>
-              )}
-            </Button>
-          </DialogTrigger>
           
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-facefit-purple" />
-                Your Personalized Fitness Plan
-              </DialogTitle>
-              <div className="text-xs text-muted-foreground flex items-center mt-1">
-                <Clock className="h-3 w-3 mr-1" />
-                Generated on {new Date().toLocaleDateString()}
-              </div>
-            </DialogHeader>
+          <TabsContent value="goals" className="space-y-4">
+            <Tabs value={goalSettingTab} onValueChange={setGoalSettingTab} className="w-full">
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="weekly">Weekly Goals</TabsTrigger>
+                <TabsTrigger value="progress">Progress</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="weekly" className="space-y-4">
+                <div className="border rounded-md p-4 bg-accent/20">
+                  <h3 className="text-sm font-medium mb-4">Weekly Workout Goal</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="weeklyGoal">Number of workouts per week</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input
+                          id="weeklyGoal"
+                          type="number"
+                          min={1}
+                          max={14}
+                          value={weeklyWorkoutGoal}
+                          onChange={(e) => setWeeklyWorkoutGoal(parseInt(e.target.value) || 0)}
+                        />
+                        <Button onClick={updateGoals}>
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="completedWorkouts">Completed workouts this week</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-2xl font-bold">{completedWorkouts}</span>
+                        <span className="text-muted-foreground">of {weeklyWorkoutGoal}</span>
+                      </div>
+                      <Progress value={goalProgressPercentage} className="h-2 mt-2" />
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="progress" className="space-y-4">
+                <div className="border rounded-md p-4">
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium mb-2">Weekly Goal Progress</h3>
+                    <div className="flex flex-col items-center">
+                      <div className="relative w-32 h-32">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-3xl font-bold">{goalProgressPercentage}%</span>
+                        </div>
+                        <svg className="w-full h-full" viewBox="0 0 36 36">
+                          <path
+                            d="M18 2.0845
+                              a 15.9155 15.9155 0 0 1 0 31.831
+                              a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="#eaeaea"
+                            strokeWidth="3"
+                          />
+                          <path
+                            d="M18 2.0845
+                              a 15.9155 15.9155 0 0 1 0 31.831
+                              a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="#8b5cf6"
+                            strokeWidth="3"
+                            strokeDasharray={`${goalProgressPercentage}, 100`}
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-center text-muted-foreground mt-2">
+                        {completedWorkouts} of {weeklyWorkoutGoal} workouts completed
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Activity Insights</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span>Total workouts logged:</span>
+                        <span className="font-medium">{exercises.length}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Average duration:</span>
+                        <span className="font-medium">
+                          {exercises.length > 0 
+                            ? Math.round(exercises.reduce((sum, ex) => sum + ex.duration, 0) / exercises.length) 
+                            : 0} minutes
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Most common activity:</span>
+                        <span className="font-medium">
+                          {exercises.length > 0 
+                            ? Object.entries(
+                                exercises.reduce((counts, ex) => {
+                                  counts[ex.name] = (counts[ex.name] || 0) + 1;
+                                  return counts;
+                                }, {} as Record<string, number>)
+                              ).sort((a, b) => b[1] - a[1])[0]?.[0] || "None"
+                            : "None"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+          
+          <TabsContent value="recommendations" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {workoutTemplates.map(template => (
+                <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="bg-facefit-purple/10 p-4">
+                    <h3 className="font-medium">{template.name}</h3>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{template.type}</span>
+                      <span>{template.duration} minutes</span>
+                    </div>
+                    <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-accent rounded-full">
+                      {template.level}
+                    </span>
+                  </div>
+                  <CardContent className="p-4">
+                    <p className="text-xs mb-2">Workout includes:</p>
+                    <ul className="text-xs space-y-1 mb-4">
+                      {template.exercises.map((ex, i) => (
+                        <li key={i} className="flex justify-between">
+                          <span>{ex.name}</span>
+                          <span>{ex.sets} x {ex.reps}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button 
+                      onClick={() => startWorkoutTemplate(template)} 
+                      className="w-full mt-2 bg-facefit-purple hover:bg-facefit-purple/90"
+                      size="sm"
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Start Workout
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
             
-            {advice ? (
-              <div className="prose prose-sm max-w-full dark:prose-invert mt-4">
-                <div className="whitespace-pre-wrap">{advice}</div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            )}
-            
-            <div className="mt-4 flex justify-end">
+            <div className="flex justify-center pt-4">
               <Button 
-                variant="outline" 
-                onClick={() => setShowCompileDialog(false)}
+                onClick={compileAdvice} 
+                className="w-full md:w-auto bg-facefit-purple hover:bg-facefit-purple/90"
+                disabled={isLoading}
               >
-                Close
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analyzing Data...
+                  </>
+                ) : (
+                  <>
+                    <Brain className="mr-2 h-4 w-4" />
+                    Generate Personalized Plan
+                  </>
+                )}
               </Button>
             </div>
-          </DialogContent>
-        </Dialog>
+            
+            <Dialog open={showCompileDialog} onOpenChange={setShowCompileDialog}>
+              <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-facefit-purple" />
+                    Your Personalized Fitness Plan
+                  </DialogTitle>
+                  <div className="text-xs text-muted-foreground flex items-center mt-1">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Generated on {new Date().toLocaleDateString()}
+                  </div>
+                </DialogHeader>
+                
+                {advice ? (
+                  <div className="prose prose-sm max-w-full dark:prose-invert mt-4">
+                    <div className="whitespace-pre-wrap">{advice}</div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center p-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                
+                <div className="mt-4 flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowCompileDialog(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </TabsContent>
+        </Tabs>
       </CardContent>
       
       {userData.lastAdvice && (
