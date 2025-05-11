@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Brain, Activity, FileText, Clock } from "lucide-react";
+import { Loader2, Brain, Activity, FileText, Clock, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateTextWithGemini } from "@/utils/geminiApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,44 +42,59 @@ const FitnessAdvisor: React.FC = () => {
     const fetchUserData = async () => {
       try {
         const { data: sessionData } = await supabase.auth.getSession();
+        
+        // Load from localStorage first as a fallback
+        const storedData = localStorage.getItem('fitnessAdvisorData');
+        if (storedData) {
+          const parsedData = JSON.parse(storedData);
+          setUserData(parsedData);
+          setFitnessGoals(parsedData.fitnessGoals || '');
+          setFitnessLevel(parsedData.fitnessLevel || '');
+          setHealthConditions(parsedData.healthConditions || '');
+        }
+        
+        // If user is authenticated, try to load from database
         if (sessionData?.session?.user) {
-          // Here we would fetch user data from Supabase
-          // For now, let's just use local storage as a placeholder
-          const storedData = localStorage.getItem('fitnessAdvisorData');
-          if (storedData) {
-            const parsedData = JSON.parse(storedData);
-            setUserData(parsedData);
-            setFitnessGoals(parsedData.fitnessGoals || '');
-            setFitnessLevel(parsedData.fitnessLevel || '');
-            setHealthConditions(parsedData.healthConditions || '');
-          }
-          
-          // In a real implementation, you would fetch mental health journal entries
-          // from the database to include in the analysis
-          const { data: journalEntries } = await supabase
-            .from('mental_health_journal')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(5);
-          
-          if (journalEntries) {
-            setUserData(prev => ({
-              ...prev,
-              mentalHealthEntries: journalEntries.map(entry => ({
-                date: new Date(entry.created_at).toLocaleDateString(),
-                content: entry.content,
-                mood_rating: entry.mood_rating
-              }))
-            }));
+          try {
+            // In a real implementation with a proper database schema, 
+            // you would fetch user fitness data from a dedicated table
+            
+            // For now, we'll get mental health entries to include in analysis
+            const { data: journalEntries, error } = await supabase
+              .from('mental_health_journal')
+              .select('*')
+              .order('created_at', { ascending: false })
+              .limit(5);
+            
+            if (error) throw error;
+            
+            if (journalEntries && journalEntries.length > 0) {
+              setUserData(prev => ({
+                ...prev,
+                mentalHealthEntries: journalEntries.map(entry => ({
+                  date: new Date(entry.created_at).toLocaleDateString(),
+                  content: entry.content,
+                  mood_rating: entry.mood_rating
+                }))
+              }));
+            }
+          } catch (dbError) {
+            console.error('Error fetching from database:', dbError);
+            // Continue with localStorage data if database fetch fails
           }
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
+        toast({
+          title: "Error loading data",
+          description: "Could not load your fitness data. Using local storage instead.",
+          variant: "destructive"
+        });
       }
     };
     
     fetchUserData();
-  }, []);
+  }, [toast]);
   
   const saveUserData = () => {
     // We need to make sure fitnessLevel is properly typed before saving
@@ -99,6 +114,25 @@ const FitnessAdvisor: React.FC = () => {
     localStorage.setItem('fitnessAdvisorData', JSON.stringify(updatedData));
     setUserData(updatedData);
     
+    // Optionally save to database if user is authenticated
+    const saveToDatabase = async () => {
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session?.user) {
+          // In a production app, you would save to a fitness_profiles table
+          // For now we'll just show a success message
+          toast({
+            title: "Preferences saved",
+            description: "Your fitness preferences have been saved."
+          });
+        }
+      } catch (error) {
+        console.error('Error saving to database:', error);
+      }
+    };
+    
+    saveToDatabase();
+    
     toast({
       title: "Preferences saved",
       description: "Your fitness preferences have been saved."
@@ -106,6 +140,15 @@ const FitnessAdvisor: React.FC = () => {
   };
   
   const compileAdvice = async () => {
+    if (!fitnessGoals) {
+      toast({
+        title: "Missing information",
+        description: "Please enter your fitness goals before generating advice.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -159,6 +202,11 @@ const FitnessAdvisor: React.FC = () => {
       
       setUserData(updatedData);
       localStorage.setItem('fitnessAdvisorData', JSON.stringify(updatedData));
+      
+      toast({
+        title: "Advice Generated",
+        description: "Your personalized fitness plan is ready to view."
+      });
       
     } catch (error) {
       console.error('Error compiling fitness advice:', error);
@@ -231,6 +279,7 @@ const FitnessAdvisor: React.FC = () => {
             onClick={saveUserData}
             className="w-full"
           >
+            <Save className="mr-2 h-4 w-4" />
             Save Preferences
           </Button>
           
@@ -296,6 +345,13 @@ const FitnessAdvisor: React.FC = () => {
           <div className="text-xs text-muted-foreground">
             {new Date(userData.lastAdvice.date).toLocaleDateString()}
           </div>
+          <Button 
+            variant="link" 
+            className="p-0 h-auto text-facefit-purple"
+            onClick={() => setShowCompileDialog(true)}
+          >
+            View Previous Advice
+          </Button>
         </CardFooter>
       )}
     </Card>
