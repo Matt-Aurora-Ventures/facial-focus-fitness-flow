@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Brain, Activity, FileText, Clock, Save, Plus, X, Calendar, Trophy, ArrowRight, BarChart, Dumbbell } from "lucide-react";
+import { Loader2, Brain, Activity, FileText, Clock, Save, Plus, X, Calendar, Trophy, ArrowRight, BarChart, Dumbbell, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateTextWithGemini } from "@/utils/geminiApi";
 import { supabase } from "@/integrations/supabase/client";
