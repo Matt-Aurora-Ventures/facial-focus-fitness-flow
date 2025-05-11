@@ -30,7 +30,8 @@ const FitnessAdvisor: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<UserData>({});
   const [fitnessGoals, setFitnessGoals] = useState('');
-  const [fitnessLevel, setFitnessLevel] = useState<string>('');
+  // Updated to match the UserData type - using union type instead of string
+  const [fitnessLevel, setFitnessLevel] = useState<'beginner' | 'intermediate' | 'advanced' | ''>('');
   const [healthConditions, setHealthConditions] = useState('');
   const [advice, setAdvice] = useState<string | null>(null);
   const [showCompileDialog, setShowCompileDialog] = useState(false);
@@ -81,15 +82,20 @@ const FitnessAdvisor: React.FC = () => {
   }, []);
   
   const saveUserData = () => {
-    const updatedData = {
+    // We need to make sure fitnessLevel is properly typed before saving
+    // Only include fitnessLevel if it's not an empty string
+    const updatedData: UserData = {
       ...userData,
       fitnessGoals,
-      fitnessLevel,
       healthConditions,
     };
     
+    // Only add fitnessLevel if it's a valid value
+    if (fitnessLevel !== '') {
+      updatedData.fitnessLevel = fitnessLevel as 'beginner' | 'intermediate' | 'advanced';
+    }
+    
     // Store in localStorage as a placeholder
-    // In a real implementation, you'd save this to the database
     localStorage.setItem('fitnessAdvisorData', JSON.stringify(updatedData));
     setUserData(updatedData);
     
@@ -193,7 +199,10 @@ const FitnessAdvisor: React.FC = () => {
         
         <div className="space-y-2">
           <Label htmlFor="fitnessLevel">Your Fitness Level</Label>
-          <Select value={fitnessLevel} onValueChange={setFitnessLevel}>
+          <Select 
+            value={fitnessLevel} 
+            onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') => setFitnessLevel(value)}
+          >
             <SelectTrigger id="fitnessLevel">
               <SelectValue placeholder="Select your fitness level" />
             </SelectTrigger>
