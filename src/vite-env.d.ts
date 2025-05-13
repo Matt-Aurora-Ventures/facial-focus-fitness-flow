@@ -14,6 +14,7 @@ declare namespace google {
       setCenter(latLng: LatLng): void;
       setZoom(zoom: number): void;
       fitBounds(bounds: LatLngBounds): void;
+      panTo(latLng: LatLng | LatLngLiteral): void;
     }
     
     class Marker {
@@ -36,6 +37,11 @@ declare namespace google {
       lng(): number;
     }
     
+    interface LatLngLiteral {
+      lat: number;
+      lng: number;
+    }
+    
     class LatLngBounds {
       constructor(sw?: LatLng, ne?: LatLng);
       extend(latLng: LatLng): LatLngBounds;
@@ -47,14 +53,14 @@ declare namespace google {
     }
     
     interface MapOptions {
-      center: LatLng;
+      center: LatLng | LatLngLiteral;
       zoom: number;
       mapTypeId?: string;
       styles?: any[];
     }
     
     interface MarkerOptions {
-      position: LatLng;
+      position: LatLng | LatLngLiteral;
       map?: Map;
       title?: string;
       icon?: string;
@@ -63,7 +69,7 @@ declare namespace google {
     
     interface InfoWindowOptions {
       content?: string | Node;
-      position?: LatLng;
+      position?: LatLng | LatLngLiteral;
     }
     
     interface GeocoderRequest {
@@ -98,6 +104,10 @@ declare namespace google {
       location_type: string;
       viewport: LatLngBounds;
       bounds?: LatLngBounds;
+    }
+    
+    interface MapMouseEvent {
+      latLng: LatLng;
     }
     
     type GeocoderStatus = 'OK' | 'ZERO_RESULTS' | 'OVER_QUERY_LIMIT' | 'REQUEST_DENIED' | 'INVALID_REQUEST' | 'UNKNOWN_ERROR';

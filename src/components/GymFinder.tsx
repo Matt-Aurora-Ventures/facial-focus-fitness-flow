@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -214,7 +213,7 @@ const GymFinder: React.FC = () => {
   }));
 
   // Handle map marker click
-  const handleMapMarkerClick = (position: google.maps.LatLngLiteral) => {
+  const handleMapMarkerClick = (position: { lat: number; lng: number }) => {
     const clickedGym = gyms.find(
       gym => gym.location?.lat === position.lat && gym.location?.lng === position.lng
     );
@@ -324,12 +323,10 @@ const GymFinder: React.FC = () => {
               height="400px"
               className="rounded-lg"
               onMapClick={(e) => {
-                // Cast to any since we changed the type to avoid TypeScript errors
-                const event = e as google.maps.MapMouseEvent;
-                if (event.latLng) {
+                if (e.latLng) {
                   const position = {
-                    lat: event.latLng.lat(),
-                    lng: event.latLng.lng()
+                    lat: e.latLng.lat(),
+                    lng: e.latLng.lng()
                   };
                   handleMapMarkerClick(position);
                 }

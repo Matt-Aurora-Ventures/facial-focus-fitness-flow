@@ -1,13 +1,5 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Loader } from "lucide-react";
-
-declare global {
-  interface Window {
-    google: any;
-    initMap: () => void;
-  }
-}
 
 interface MapProps {
   center?: { lat: number; lng: number };
@@ -17,7 +9,7 @@ interface MapProps {
     title?: string;
   }>;
   height?: string;
-  onMapClick?: (e: any) => void; // Changed from google.maps.MapMouseEvent to any
+  onMapClick?: (e: google.maps.MapMouseEvent) => void;
   className?: string;
 }
 
@@ -31,7 +23,7 @@ const Map: React.FC<MapProps> = ({
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [mapInstance, setMapInstance] = useState<any>(null);
   const [mapMarkers, setMapMarkers] = useState<google.maps.Marker[]>([]);
 
   // Load Google Maps API
