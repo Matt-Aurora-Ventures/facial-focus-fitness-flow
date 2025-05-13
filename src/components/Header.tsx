@@ -1,11 +1,19 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { ScanFace, ChartBar } from "lucide-react";
+import { ScanFace, ChartBar, User, LogIn } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
+  const { user, signOut, userProfile } = useAuth();
   
   return (
     <header className="sticky top-0 z-10 w-full">
@@ -35,6 +43,40 @@ const Header: React.FC = () => {
               <ChartBar className="h-4 w-4" />
               <span className="hidden sm:inline">Progress</span>
             </Button>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="gap-1 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+                  >
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">{userProfile?.full_name || user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    My Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={signOut}>
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="gap-1 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+                onClick={() => navigate('/auth')}
+              >
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign In</span>
+              </Button>
+            )}
+            
             <Button 
               size="sm" 
               className="bg-facefit-purple hover:bg-facefit-purple-dark"
