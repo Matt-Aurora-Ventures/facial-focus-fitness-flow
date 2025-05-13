@@ -107,15 +107,42 @@ const Map: React.FC<MapProps> = ({
           animation: window.google.maps.Animation.DROP,
         });
         
+        // Add click handler for the marker
+        newMarker.addListener('click', () => {
+          if (onMapClick) {
+            // Create a mock event object with the latLng from the marker
+            const mockEvent = {
+              latLng: {
+                lat: () => marker.position.lat,
+                lng: () => marker.position.lng
+              }
+            };
+            onMapClick(mockEvent);
+          }
+          
+          // Animate the marker when clicked
+          newMarker.setAnimation(window.google.maps.Animation.BOUNCE);
+          setTimeout(() => {
+            newMarker.setAnimation(null);
+          }, 750);
+        });
+        
         return newMarker;
       });
       
       setMapMarkers(newMarkers);
     }
-  }, [mapInstance, markers]);
+  }, [mapInstance, markers, onMapClick]);
+
+  // Update map center when center prop changes
+  useEffect(() => {
+    if (mapInstance && center) {
+      mapInstance.panTo(center);
+    }
+  }, [center, mapInstance]);
 
   return (
-    <div className={`relative ${className}`} style={{ height }}>
+    <div className="relative ${className}" style={{ height }}>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-accent/20">
           <Loader className="h-8 w-8 animate-spin text-facefit-purple" />
