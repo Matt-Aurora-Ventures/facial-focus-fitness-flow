@@ -17,7 +17,7 @@ interface MapProps {
     title?: string;
   }>;
   height?: string;
-  onMapClick?: (e: google.maps.MapMouseEvent) => void;
+  onMapClick?: (e: any) => void; // Changed from google.maps.MapMouseEvent to any
   className?: string;
 }
 
